@@ -11,7 +11,10 @@ import {
   InputLabel,
   FormControl,
 } from "@mui/material";
-import { SelectChangeEvent } from "@mui/material/Select"; 
+import { SelectChangeEvent } from "@mui/material/Select";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { format } from "date-fns";
 
 interface Task {
   TaskId: string;
@@ -36,10 +39,13 @@ const EditModal: React.FC<EditModalProps> = ({
   taskToEdit,
 }) => {
   const [task, setTask] = useState<Task>(taskToEdit);
+  const [deadline, setDeadline] = useState<Date | null>(
+    taskToEdit.Deadline ? new Date(taskToEdit.Deadline) : null
+  );
 
   useEffect(() => {
     setTask(taskToEdit);
-    console.log(taskToEdit);
+    setDeadline(taskToEdit.Deadline ? new Date(taskToEdit.Deadline) : null);
   }, [taskToEdit]);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -53,6 +59,14 @@ const EditModal: React.FC<EditModalProps> = ({
 
   const handlePriorityChange = (event: SelectChangeEvent<string>) => {
     setTask((prev) => ({ ...prev, Priority: event.target.value as string }));
+  };
+
+  const handleDeadlineChange = (date: Date | null) => {
+    setDeadline(date);
+    setTask((prev) => ({
+      ...prev,
+      Deadline: date ? format(date, "yyyy-MM-dd") : "",
+    }));
   };
 
   const handleSave = () => {
@@ -96,12 +110,11 @@ const EditModal: React.FC<EditModalProps> = ({
           value={task.Description}
           onChange={handleChange}
         />
-        
 
         <FormControl fullWidth margin="dense" variant="standard">
           <InputLabel>Priority</InputLabel>
           <Select
-            name="Status"
+            name="Priority"
             value={task.Priority || ""}
             onChange={handlePriorityChange}
             label="Priority"
@@ -110,8 +123,6 @@ const EditModal: React.FC<EditModalProps> = ({
             <MenuItem value="Not Urgent">Not Urgent</MenuItem>
           </Select>
         </FormControl>
-
-
 
         <FormControl fullWidth margin="dense" variant="standard">
           <InputLabel>Status</InputLabel>
@@ -126,16 +137,21 @@ const EditModal: React.FC<EditModalProps> = ({
             <MenuItem value="Done">Done</MenuItem>
           </Select>
         </FormControl>
-        <TextField
-          margin="dense"
-          name="Deadline"
-          label="Deadline"
-          type="text"
-          fullWidth
-          variant="standard"
-          value={task.Deadline}
-          onChange={handleChange}
-        />
+
+        <FormControl fullWidth margin="dense" variant="standard">
+          {/* <InputLabel>Deadline</InputLabel> */}
+
+          <div className="date-picker-wrapper">
+           
+            <DatePicker
+              selected={deadline}
+              onChange={handleDeadlineChange}
+              dateFormat="yyyy-MM-dd"
+              placeholderText="Select a deadline"
+              className="react-datepicker"
+            />
+          </div>
+        </FormControl>
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>

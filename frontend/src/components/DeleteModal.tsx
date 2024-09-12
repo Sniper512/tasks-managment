@@ -33,8 +33,8 @@ const DeleteModal: React.FC<DeleteModalProps> = ({
       </DialogTitle>
       <DialogContent
         sx={{
-          fontFamily: "Roboto, sans-serif", // Consistent font family
-          fontSize: "16px", // Adjust font size for readability
+          fontFamily: "Roboto, sans-serif", 
+          fontSize: "16px",
         }}
       >
         <Typography variant="body1">

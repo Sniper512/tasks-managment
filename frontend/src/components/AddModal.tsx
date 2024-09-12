@@ -13,6 +13,10 @@ import {
   FormHelperText,
 } from "@mui/material";
 import { SelectChangeEvent } from "@mui/material/Select";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { format } from "date-fns";
+
 
 interface Task {
   TaskId: string;
@@ -20,7 +24,7 @@ interface Task {
   Description: string;
   Priority: string;
   Status: string;
-  Deadline: string;
+  Deadline: string; // Store the date as a string in YYYY-MM-DD format
 }
 
 interface AddModalProps {
@@ -39,7 +43,8 @@ const AddModal: React.FC<AddModalProps> = ({ open, onClose, onAdd }) => {
     Deadline: "",
   });
 
-  const [errors, setErrors] = useState<Partial<Task>>({});
+  const [errors, setErrors] = useState<Partial<Record<keyof Task, string>>>({});
+  const [deadline, setDeadline] = useState<Date | null>(null);
 
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | { name?: string; value: unknown }>
@@ -49,15 +54,23 @@ const AddModal: React.FC<AddModalProps> = ({ open, onClose, onAdd }) => {
   };
 
   const handleSelectChange = (event: SelectChangeEvent<string>) => {
-    setTask((prev) => ({ ...prev, Status: event.target.value as string }));
+    setTask((prev) => ({ ...prev, Status: event.target.value }));
   };
 
   const handlePriorityChange = (event: SelectChangeEvent<string>) => {
-    setTask((prev) => ({ ...prev, Priority: event.target.value as string }));
-  }
+    setTask((prev) => ({ ...prev, Priority: event.target.value }));
+  };
+
+  const handleDeadlineChange = (date: Date | null) => {
+    setDeadline(date);
+    setTask((prev) => ({
+      ...prev,
+      Deadline: date ? format(date, "yyyy-MM-dd") : "",
+    }));
+  };
 
   const validate = () => {
-    const newErrors: Partial<Task> = {};
+    const newErrors: Partial<Record<keyof Task, string>> = {};
     if (!task.TaskId) newErrors.TaskId = "Task ID is required";
     if (!task.Title) newErrors.Title = "Title is required";
     if (!task.Description) newErrors.Description = "Description is required";
@@ -80,6 +93,7 @@ const AddModal: React.FC<AddModalProps> = ({ open, onClose, onAdd }) => {
         Deadline: "",
       });
       setErrors({});
+      setDeadline(null);
       onClose();
     }
   };
@@ -125,8 +139,6 @@ const AddModal: React.FC<AddModalProps> = ({ open, onClose, onAdd }) => {
           error={!!errors.Description}
           helperText={errors.Description}
         />
-        
-
         <FormControl
           fullWidth
           margin="dense"
@@ -143,7 +155,9 @@ const AddModal: React.FC<AddModalProps> = ({ open, onClose, onAdd }) => {
             <MenuItem value="Urgent">Urgent</MenuItem>
             <MenuItem value="Not Urgent">Not Urgent</MenuItem>
           </Select>
-          {errors.Priority && <FormHelperText>{errors.Priority}</FormHelperText>}
+          {errors.Priority && (
+            <FormHelperText>{errors.Priority}</FormHelperText>
+          )}
         </FormControl>
 
         <FormControl
@@ -165,19 +179,27 @@ const AddModal: React.FC<AddModalProps> = ({ open, onClose, onAdd }) => {
           </Select>
           {errors.Status && <FormHelperText>{errors.Status}</FormHelperText>}
         </FormControl>
-        <TextField
-          margin="dense"
-          name="Deadline"
-          label="Deadline (YYYY-MM-DD)"
-          type="text"
+
+        <FormControl
           fullWidth
+          margin="dense"
           variant="standard"
-          value={task.Deadline}
-          onChange={handleChange}
-          placeholder="e.g., 2024-12-31"
           error={!!errors.Deadline}
-          helperText={errors.Deadline}
-        />
+        >
+          <InputLabel>Deadline</InputLabel>
+          <div className="date-picker-wrapper">
+            <DatePicker
+              selected={deadline}
+              onChange={handleDeadlineChange}
+              dateFormat="yyyy-MM-dd"
+              placeholderText="Select a deadline"
+              className="react-datepicker"
+            />
+          </div>
+          {errors.Deadline && (
+            <FormHelperText>{errors.Deadline}</FormHelperText>
+          )}
+        </FormControl>
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>

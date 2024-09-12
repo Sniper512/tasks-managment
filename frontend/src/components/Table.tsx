@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Button } from "@mui/material";
+import {Button } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -55,28 +55,34 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
 
 const statusStyles = {
   ToDo: {
-    color: "blue",
+    backgroundColor: "red",
+    color: "white",
     fontWeight: "bold",
   },
   InProgress: {
-    color: "orange",
+    backgroundColor: "orange",
+    color: "white",
     fontWeight: "bold",
   },
   Done: {
-    color: "green",
+    backgroundColor: "green",
+    color: "white",
     fontWeight: "bold",
   },
 };
 
 const PriorityStyles = {
   Urgent: {
-    color: "red",
+    backgroundColor: "red",
+    color: "white", // Ensure the text is visible against the background
     fontWeight: "bold",
   },
-  "Not Urgent":{
-    color: "green",
+  "Not Urgent": {
+    backgroundColor: "green",
+    color: "white",
     fontWeight: "bold",
-  }
+  },
+  // Add other priorities as needed
 };
 
 interface Task {
@@ -95,7 +101,7 @@ const initialRows: Task[] = [
     Description: "something will come",
     Priority: "Urgent",
     Status: "ToDo",
-    Deadline: "12/12/2021",
+    Deadline: "9/13/2024", // please provide MM/DD/YYYY if hardcoded
   },
 ];
 

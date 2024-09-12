@@ -3,3 +3,54 @@
   margin: 0px;
   box-sizing: border-box;
 }
+
+.DashBoardHeading {
+  text-align: center;
+  margin-top: 80px;
+  color: #1976d2;
+  font-family: 'Verdana, Geneva, Tahoma, sans-serif';
+  font-size: 2.5rem; 
+  font-weight: bold; 
+  background: linear-gradient(90deg, #1976d2,#1976d2); 
+  
+  
+  -webkit-background-clip: text;
+  background-clip: text; 
+  
+  -webkit-text-fill-color: transparent; 
+  text-shadow: 2px 2px 5px rgba(0,0,0,0.2); 
+  padding: 10px 0;
+  border-bottom: 10px solid #1976d2; 
+}
+
+@media screen and (max-width: 600px) {
+  .DashBoardHeading {
+    font-size: 1.5rem;
+    padding: 8px 0;
+    border-bottom: 5px solid #1976d2;
+  }
+}
+.date-picker-wrapper {
+  margin-top: 16px; }
+
+.react-datepicker {
+  width: 100%; 
+  padding: 10px; 
+  border: 1px solid rgba(0, 0, 0, 0.23); 
+  border-radius: 4px; 
+  box-shadow: none; 
+  font-size: 1rem; 
+  background-color: #fff; 
+}
+
+.react-datepicker__input-container {
+  display: flex;
+}
+
+.react-datepicker__input {
+  border: none; 
+  outline: none; 
+  width: 100%;
+}
+
+
