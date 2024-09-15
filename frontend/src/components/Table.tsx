@@ -30,7 +30,7 @@ const StyledTableCell = styled(TableCell)(({ theme }) => ({
     color: theme.palette.common.white,
     fontWeight: "bold",
     padding: theme.spacing(2, 1),
-    whiteSpace: "nowrap",
+    whiteSpace: "nowrap", // Add no-wrap for header
     overflow: "hidden",
     textOverflow: "ellipsis",
     fontSize: "18px",
@@ -39,7 +39,7 @@ const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.body}`]: {
     fontSize: "18px",
     padding: theme.spacing(1),
-    whiteSpace: "normal",
+    whiteSpace: "normal", // Set default behavior for body
     wordWrap: "break-word",
     overflow: "hidden",
     textOverflow: "ellipsis",
@@ -57,37 +57,15 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
 }));
 
 const statusStyles = {
-  ToDo: {
-    backgroundColor: "red",
-    color: "white",
-    fontWeight: "bold",
-  },
-  InProgress: {
-    backgroundColor: "orange",
-    color: "white",
-    fontWeight: "bold",
-  },
-  Done: {
-    backgroundColor: "green",
-    color: "white",
-    fontWeight: "bold",
-  },
+  ToDo: {},
+  InProgress: {},
+  Done: {},
 };
 
 const PriorityStyles = {
-  Urgent: {
-    backgroundColor: "red",
-    color: "white",
-    fontWeight: "bold",
-  },
-  "Not Urgent": {
-    backgroundColor: "green",
-    color: "white",
-    fontWeight: "bold",
-  },
+  Urgent: {},
+  "Not Urgent": {},
 };
-
-
 
 function CustomizedTables() {
   const [openAddModal, setOpenAddModal] = useState(false);
@@ -100,10 +78,24 @@ function CustomizedTables() {
   useEffect(() => {
     const fetchData = async () => {
       const response = await getAllTasksFromDBService();
-      setRows(response.data);
+      const data = response.data;
+
+      // Sorting tasks based on status
+      const sortedData = data.sort((a: Task, b: Task) => {
+        const statusOrder = {
+          InProgress: 1,
+          ToDo: 2,
+          Done: 3,
+        };
+        return statusOrder[a.status] - statusOrder[b.status];
+      });
+
+      setRows(sortedData);
     };
+
     fetchData();
   }, [rows]);
+
 
   const handleClickOpenAdd = () => {
     setOpenAddModal(true);
@@ -114,16 +106,12 @@ function CustomizedTables() {
   };
 
   const handleAddTask = async (newTask: Task) => {
-
     const response = await addTaskToDBService(newTask);
     if (response.type === "success") {
       setRows((prev) => [...prev, newTask]);
-
-      //TODO: Show success alert
     } else if (response.type === "error") {
-      //TODO: Show error alert
+      // Show error alert
     }
-
   };
 
   const handleClickOpenEdit = (task: Task) => {
@@ -137,25 +125,18 @@ function CustomizedTables() {
   };
 
   const handleEditTask = async (updatedTask: Task) => {
-
     const response = await editTaskToDBService(updatedTask);
     if (response.type === "success") {
       setRows((prev) =>
         prev.map((task) =>
           task.task_id === updatedTask.task_id ? updatedTask : task
-        ))
-      //TODO: Show success alert
-
+        )
+      );
+    } else if (response.type === "error") {
+      // Show error alert
     }
-    else if (response.type === "error") {
-      {
-
-        //TODO: Show error alert
-      }
-      handleCloseEdit();
-    };
-  }
-
+    handleCloseEdit();
+  };
 
   const formatDate = (isoDate: string) => {
     const date = new Date(isoDate);
@@ -173,17 +154,13 @@ function CustomizedTables() {
   };
 
   const handleTaskDeleteFunc = async (id: string) => {
-
     const response = await deleteTaskFromDBService({ id });
     if (response.type === "success") {
       setRows((prev) => prev.filter((task) => task.task_id !== id));
       handleCloseDelete();
-      //TODO: Show success alert
-
     } else if (response.type === "error") {
-      //TODO: Show error alert
+      // Show error alert
     }
-
   };
 
   return (
@@ -245,7 +222,15 @@ function CustomizedTables() {
           </TableHead>
           <TableBody>
             {rows.map((row) => (
-              <StyledTableRow key={row.task_id}>
+              <StyledTableRow
+                key={row.task_id}
+                style={{
+                  textDecoration: row.status === "Done" ? "line-through" : "none",
+                  cursor: "pointer",
+                  backgroundColor: row.status === "Done" ? "darkgrey" : "white",
+
+                }}
+              >
                 <StyledTableCell
                   align="left"
                   style={{ paddingLeft: 16 }}
@@ -266,20 +251,28 @@ function CustomizedTables() {
                   sx={
                     PriorityStyles[row.priority as keyof typeof PriorityStyles]
                   }
-                  className={row.priority === "urgent" ? "bg-danger" : "bg-success"}
+                  style={{ paddingLeft: 16, whiteSpace: "nowrap",
+                   }}
                 >
                   {row.priority}
                 </StyledTableCell>
                 <StyledTableCell
                   align="left"
                   sx={statusStyles[row.status as keyof typeof statusStyles]}
+                  style={{
+                    paddingLeft: 16, whiteSpace: "nowrap",
+
+                  }}
                 >
                   {row.status}
                 </StyledTableCell>
                 <StyledTableCell align="left">
                   {formatDate(row.deadline)}
                 </StyledTableCell>
-                <StyledTableCell align="left">
+                <StyledTableCell
+                  align="left"
+                  style={{ paddingLeft: 16, whiteSpace: "nowrap" }}
+                >
                   <IconButton
                     color="primary"
                     onClick={() => handleClickOpenEdit(row)}
