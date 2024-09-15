@@ -5,9 +5,15 @@ import addTaskToDB from "./database/addTaskToDB.js"; // Make sure this function 
 import deleteTaskFromDB from "./database/deleteTaskFromDB.js";
 import updateTaskToDB from "./database/updateTaskToDB.js";
 import cors from "cors";
+import path from "path";
+import { fileURLToPath } from "url";
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+// Loading the environment variables from .env.local
+dotenv.config({ path: path.join(__dirname, ".env.local") });
 const app = express();
-dotenv.config();
 
+//Am allowing requests from only one orgin you call allow it from All origins by using * in origin
 app.use(cors({
 	origin: "http://localhost:5173",
 }));
@@ -64,11 +70,10 @@ app.put("/api/task/:id", async (req, res) => {
 			deadline,
 		}, id);
 		return res.status(201).send(response.message);
-
 	}
 	catch(error){
 		console.log("Error:", error.message);
-		res.status(400).send(error.message);
+		return res.status(400).send(error.message);
 	}
 });
 
@@ -89,10 +94,10 @@ app.delete("/api/task/:id", async (req, res) => {
 	}
 	catch(error){
 		console.log("Error:", error.message);
-		res.status(400).send(error.message);
+		return res.status(400).send(error.message);
 	}
 });
 
-app.listen(3000, () => {
-	console.log("Server running on http://localhost:" + 3000);
+app.listen(process.env.PORT, () => {
+	console.log("Server running on http://localhost:" + process.env.PORT);
 });

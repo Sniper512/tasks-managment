@@ -104,7 +104,7 @@ function CustomizedTables() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch("http://localhost:3000/api/task");
+        const response = await fetch("http://localhost:8800/api/task");
         if (!response.ok) {
           throw new Error("Network response was not ok");
         }
@@ -127,7 +127,7 @@ function CustomizedTables() {
 
   const handleAdd = async (newTask: Task) => {
     try {
-      const response = await fetch("http://localhost:3000/api/task", {
+      const response = await fetch("http://localhost:8800/api/task", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -156,7 +156,7 @@ function CustomizedTables() {
 
   const handleSaveEdit =async (updatedTask: Task) => {
     try{
-      const response = await fetch(`http://localhost:3000/api/task/${updatedTask._id}`,{
+      const response = await fetch(`http://localhost:8800/api/task/${updatedTask._id}`,{
         method:"PUT",
         headers:{
           "Content-Type": "application/json",
@@ -196,7 +196,7 @@ function CustomizedTables() {
 
   const handleDelete = async (id: string) => {
     try {
-      const response = await fetch(`http://localhost:3000/api/task/${id}`, {
+      const response = await fetch(`http://localhost:8800/api/task/${id}`, {
         method: "DELETE",
       });
       if (response.ok) {
