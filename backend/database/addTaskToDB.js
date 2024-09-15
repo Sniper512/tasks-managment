@@ -8,7 +8,7 @@ const taskSchema = z.object({
   title: z.string().min(1, "Title cannot be empty"),
   description: z.string().min(1, "Description cannot be empty"),
   priority: z.string().min(1, "Priority cannot be empty").refine(
-      (value) => ["ToDo", "InProgress", "Done"].includes(value),
+      (value) => ["Urgent", "Not Urgent"].includes(value),
       "Invalid status"
     ),
   status: z
