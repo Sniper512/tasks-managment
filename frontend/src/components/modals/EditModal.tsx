@@ -17,12 +17,13 @@ import "react-datepicker/dist/react-datepicker.css";
 import { format } from "date-fns";
 
 interface Task {
-  TaskId: string;
-  Title: string;
-  Description: string;
-  Priority: string;
-  Status: string;
-  Deadline: string; // Keeping Deadline as a string
+  _id: string;
+  task_id: string;
+  title: string;
+  description: string;
+  priority: string;
+  status: string;
+  deadline: string;
 }
 
 interface EditModalProps {
@@ -40,12 +41,12 @@ const EditModal: React.FC<EditModalProps> = ({
 }) => {
   const [task, setTask] = useState<Task>(taskToEdit);
   const [deadline, setDeadline] = useState<Date | null>(
-    taskToEdit.Deadline ? new Date(taskToEdit.Deadline) : null
+    taskToEdit.deadline ? new Date(taskToEdit.deadline) : null
   );
 
   useEffect(() => {
     setTask(taskToEdit);
-    setDeadline(taskToEdit.Deadline ? new Date(taskToEdit.Deadline) : null);
+    setDeadline(taskToEdit.deadline ? new Date(taskToEdit.deadline) : null);
   }, [taskToEdit]);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -54,18 +55,18 @@ const EditModal: React.FC<EditModalProps> = ({
   };
 
   const handleStatusChange = (event: SelectChangeEvent<string>) => {
-    setTask((prev) => ({ ...prev, Status: event.target.value as string }));
+    setTask((prev) => ({ ...prev, status: event.target.value as string }));
   };
 
   const handlePriorityChange = (event: SelectChangeEvent<string>) => {
-    setTask((prev) => ({ ...prev, Priority: event.target.value as string }));
+    setTask((prev) => ({ ...prev, priority: event.target.value as string }));
   };
 
   const handleDeadlineChange = (date: Date | null) => {
     setDeadline(date);
     setTask((prev) => ({
       ...prev,
-      Deadline: date ? format(date, "yyyy-MM-dd") : "",
+      deadline: date ? format(date, "yyyy-MM-dd") : "",
     }));
   };
 
@@ -81,41 +82,41 @@ const EditModal: React.FC<EditModalProps> = ({
         <TextField
           autoFocus
           margin="dense"
-          name="TaskId"
+          name="task_id"
           label="Task ID"
           type="text"
           fullWidth
           variant="standard"
-          value={task.TaskId}
+          value={task.task_id}
           onChange={handleChange}
           disabled
         />
         <TextField
           margin="dense"
-          name="Title"
+          name="title"
           label="Title"
           type="text"
           fullWidth
           variant="standard"
-          value={task.Title}
+          value={task.title}
           onChange={handleChange}
         />
         <TextField
           margin="dense"
-          name="Description"
+          name="description"
           label="Description"
           type="text"
           fullWidth
           variant="standard"
-          value={task.Description}
+          value={task.description}
           onChange={handleChange}
         />
 
         <FormControl fullWidth margin="dense" variant="standard">
           <InputLabel>Priority</InputLabel>
           <Select
-            name="Priority"
-            value={task.Priority || ""}
+            name="priority"
+            value={task.priority || ""}
             onChange={handlePriorityChange}
             label="Priority"
           >
@@ -127,8 +128,8 @@ const EditModal: React.FC<EditModalProps> = ({
         <FormControl fullWidth margin="dense" variant="standard">
           <InputLabel>Status</InputLabel>
           <Select
-            name="Status"
-            value={task.Status || ""}
+            name="status"
+            value={task.status || ""}
             onChange={handleStatusChange}
             label="Status"
           >
@@ -139,10 +140,7 @@ const EditModal: React.FC<EditModalProps> = ({
         </FormControl>
 
         <FormControl fullWidth margin="dense" variant="standard">
-          {/* <InputLabel>Deadline</InputLabel> */}
-
           <div className="date-picker-wrapper">
-           
             <DatePicker
               selected={deadline}
               onChange={handleDeadlineChange}

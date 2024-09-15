@@ -1,13 +1,7 @@
-import { useState } from "react";
-import {Button } from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
-import IconButton from "@mui/material/IconButton";
-import AddModal from "./AddModal";
-import EditModal from "./EditModaal";
-import DeleteModal from "./DeleteModal";
+import { useState, useEffect } from "react";
 import {
+  Button,
+  IconButton,
   Table,
   TableBody,
   TableCell,
@@ -15,34 +9,45 @@ import {
   TableHead,
   TableRow,
   Paper,
+  Snackbar,
 } from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 import { styled } from "@mui/material/styles";
 import { tableCellClasses } from "@mui/material/TableCell";
-
+import AddModal from "./modals/AddModal";
+import EditModal from "./modals/EditModal";
+import DeleteModal from "./modals/DeleteModal";
+import { Task } from "../types/taskTypes";
+import deleteTaskFromDBService from "../services/deleteTaskFromDBService";
+import editTaskToDBService from "../services/editTaskToDBService";
+import addTaskToDBService from "../services/addTaskToDBService";
+import getAllTasksFromDBService from "../services/getAllTasksFromDBService";
+import Alert from '@mui/material/Alert';
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
     backgroundColor: "#1976d2",
     color: theme.palette.common.white,
     fontWeight: "bold",
-    padding: theme.spacing(2,1),
+    padding: theme.spacing(2, 1),
     whiteSpace: "nowrap",
     overflow: "hidden",
     textOverflow: "ellipsis",
-    fontSize: "18px", 
-    fontFamily: "Roboto, sans-serif", 
+    fontSize: "18px",
+    fontFamily: "Roboto, sans-serif",
   },
   [`&.${tableCellClasses.body}`]: {
-    fontSize: "18px", 
+    fontSize: "18px",
     padding: theme.spacing(1),
     whiteSpace: "normal",
     wordWrap: "break-word",
     overflow: "hidden",
     textOverflow: "ellipsis",
-    fontFamily: "Roboto, sans-serif", // Consistent font family
+    fontFamily: "Roboto, sans-serif",
   },
 }));
-
 
 const StyledTableRow = styled(TableRow)(({ theme }) => ({
   "&:nth-of-type(odd)": {
@@ -54,56 +59,15 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
 }));
 
 const statusStyles = {
-  ToDo: {
-    backgroundColor: "red",
-    color: "white",
-    fontWeight: "bold",
-  },
-  InProgress: {
-    backgroundColor: "orange",
-    color: "white",
-    fontWeight: "bold",
-  },
-  Done: {
-    backgroundColor: "green",
-    color: "white",
-    fontWeight: "bold",
-  },
+  ToDo: {},
+  InProgress: {},
+  Done: {},
 };
 
 const PriorityStyles = {
-  Urgent: {
-    backgroundColor: "red",
-    color: "white", // Ensure the text is visible against the background
-    fontWeight: "bold",
-  },
-  "Not Urgent": {
-    backgroundColor: "green",
-    color: "white",
-    fontWeight: "bold",
-  },
-  // Add other priorities as needed
+  Urgent: {},
+  "Not Urgent": {},
 };
-
-interface Task {
-  TaskId: string;
-  Title: string;
-  Description: string;
-  Priority: string;
-  Status: string;
-  Deadline: string;
-}
-
-const initialRows: Task[] = [
-  {
-    TaskId: "1",
-    Title: "HSNI",
-    Description: "something will come",
-    Priority: "Urgent",
-    Status: "ToDo",
-    Deadline: "9/13/2024", // please provide MM/DD/YYYY if hardcoded
-  },
-];
 
 function CustomizedTables() {
   const [openAddModal, setOpenAddModal] = useState(false);
@@ -111,7 +75,35 @@ function CustomizedTables() {
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
   const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
-  const [rows, setRows] = useState<Task[]>(initialRows);
+  const [rows, setRows] = useState<Task[]>([]);
+  const [alertOpen, setAlertOpen] = useState(false); 
+  const [alertMessage, setAlertMessage] = useState(""); 
+  const [alertSeverity, setAlertSeverity] = useState<"success" | "error">("success"); 
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const response = await getAllTasksFromDBService();
+      const data = response.data;
+
+      // Sorting tasks based on status
+      const sortedData = data.sort((a: Task, b: Task) => {
+        const statusOrder: { [key: string]: number } = {
+          InProgress: 1,
+          ToDo: 2,
+          Done: 3,
+        };
+
+        return (
+          (statusOrder[a.status as keyof typeof statusOrder] || 0) -
+          (statusOrder[b.status as keyof typeof statusOrder] || 0)
+        );
+      });
+
+      setRows(sortedData);
+    };
+
+    fetchData();
+  }, [rows]);
 
   const handleClickOpenAdd = () => {
     setOpenAddModal(true);
@@ -121,8 +113,14 @@ function CustomizedTables() {
     setOpenAddModal(false);
   };
 
-  const handleAdd = (newTask: Task) => {
-    setRows((prev) => [...prev, newTask]);
+  const handleAddTask = async (newTask: Task) => {
+    const response = await addTaskToDBService(newTask);
+    if (response.type === "success") {
+      setRows((prev) => [...prev, newTask]);
+      showAlert("Task added successfully", "success");
+    } else if (response.type === "error") {
+      showAlert("Failed to add task", "error");
+    }
   };
 
   const handleClickOpenEdit = (task: Task) => {
@@ -135,12 +133,18 @@ function CustomizedTables() {
     setTaskToEdit(null);
   };
 
-  const handleSaveEdit = (updatedTask: Task) => {
-    setRows((prev) =>
-      prev.map((task) =>
-        task.TaskId === updatedTask.TaskId ? updatedTask : task
-      )
-    );
+  const handleEditTask = async (updatedTask: Task) => {
+    const response = await editTaskToDBService(updatedTask);
+    if (response.type === "success") {
+      setRows((prev) =>
+        prev.map((task) =>
+          task.task_id === updatedTask.task_id ? updatedTask : task
+        )
+      );
+      showAlert("Task updated successfully", "success");
+    } else if (response.type === "error") {
+      showAlert("Failed to update task", "error");
+    }
     handleCloseEdit();
   };
 
@@ -154,17 +158,45 @@ function CustomizedTables() {
     setTaskToDelete(null);
   };
 
-  const handleDelete = () => {
-    if (taskToDelete) {
-      setRows((prev) =>
-        prev.filter((task) => task.TaskId !== taskToDelete.TaskId)
-      );
+  const handleTaskDeleteFunc = async (id: string) => {
+    const response = await deleteTaskFromDBService({ id });
+    if (response.type === "success") {
+      setRows((prev) => prev.filter((task) => task.task_id !== id));
+      showAlert("Task deleted successfully", "success");
       handleCloseDelete();
+    } else if (response.type === "error") {
+      showAlert("Failed to delete task", "error");
     }
+  };
+
+  const showAlert = (message: string, severity: "success" | "error") => {
+    setAlertMessage(message);
+    setAlertSeverity(severity);
+    setAlertOpen(true);
+  };
+
+  const handleAlertClose = () => {
+    setAlertOpen(false);
+  };
+
+  const formatDate = (isoDate: string) => {
+    const date = new Date(isoDate);
+    return date.toLocaleDateString();
   };
 
   return (
     <>
+      <Snackbar
+        open={alertOpen}
+        autoHideDuration={6000}
+        onClose={handleAlertClose}
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+      >
+        <Alert onClose={handleAlertClose} severity={alertSeverity}>
+          {alertMessage}
+        </Alert>
+      </Snackbar>
+
       <Button
         variant="contained"
         color="primary"
@@ -181,23 +213,16 @@ function CustomizedTables() {
         Add Task
       </Button>
 
-      <AddModal
-        open={openAddModal}
-        onClose={handleCloseAdd}
-        onAdd={handleAdd}
-      />
-      <EditModal
-        open={openEditModal}
-        onClose={handleCloseEdit}
-        onSave={handleSaveEdit}
-        taskToEdit={taskToEdit || ({} as Task)}
-      />
+      <AddModal open={openAddModal} onClose={handleCloseAdd} onAdd={handleAddTask} />
+      <EditModal open={openEditModal} onClose={handleCloseEdit} onSave={handleEditTask} taskToEdit={taskToEdit || ({} as Task)} />
       <DeleteModal
         open={openDeleteModal}
         onClose={handleCloseDelete}
-        onDelete={handleDelete}
-        taskName={taskToDelete?.Title || ""}
+        onDelete={handleTaskDeleteFunc}
+        taskName={taskToDelete?.title || ""}
+        taskId={taskToDelete?._id || ""}
       />
+
       <TableContainer
         component={Paper}
         sx={{
@@ -221,46 +246,26 @@ function CustomizedTables() {
           </TableHead>
           <TableBody>
             {rows.map((row) => (
-              <StyledTableRow key={row.TaskId}>
-                <StyledTableCell
-                  align="left"
-                  style={{ paddingLeft: 16 }}
-                  component="th"
-                  scope="row"
-                >
-                  {row.TaskId}
+              <StyledTableRow key={row.task_id} style={{ textDecoration: row.status === "Done" ? "line-through" : "none", cursor: "pointer" }}>
+                <StyledTableCell align="left" style={{ paddingLeft: 16 }} component="th" scope="row">
+                  {row.task_id}
                 </StyledTableCell>
-                <StyledTableCell align="left">{row.Title}</StyledTableCell>
-                <StyledTableCell
-                  align="left"
-                  sx={{ maxWidth: 300, minWidth: 250 }}
-                >
-                  {row.Description}
+                <StyledTableCell align="left">{row.title}</StyledTableCell>
+                <StyledTableCell align="left" sx={{ maxWidth: 300, minWidth: 250 }}>
+                  {row.description}
                 </StyledTableCell>
-                <StyledTableCell
-                  align="left"
-                  sx={PriorityStyles[row.Priority as keyof typeof PriorityStyles]}
-                >
-                  {row.Priority}
+                <StyledTableCell align="left" sx={PriorityStyles[row.priority as keyof typeof PriorityStyles]} style={{ paddingLeft: 16, whiteSpace: "nowrap" }}>
+                  {row.priority}
                 </StyledTableCell>
-                <StyledTableCell
-                  align="left"
-                  sx={statusStyles[row.Status as keyof typeof statusStyles]}
-                >
-                  {row.Status}
+                <StyledTableCell align="left" sx={statusStyles[row.status as keyof typeof statusStyles]} style={{ paddingLeft: 16, whiteSpace: "nowrap" }}>
+                  {row.status}
                 </StyledTableCell>
-                <StyledTableCell align="left">{row.Deadline}</StyledTableCell>
-                <StyledTableCell align="left">
-                  <IconButton
-                    color="primary"
-                    onClick={() => handleClickOpenEdit(row)}
-                  >
+                <StyledTableCell align="left">{formatDate(row.deadline)}</StyledTableCell>
+                <StyledTableCell align="left" style={{ paddingLeft: 16, whiteSpace: "nowrap" }}>
+                  <IconButton color="primary" onClick={() => handleClickOpenEdit(row)}>
                     <EditIcon />
                   </IconButton>
-                  <IconButton
-                    color="secondary"
-                    onClick={() => handleClickOpenDelete(row)}
-                  >
+                  <IconButton color="secondary" onClick={() => handleClickOpenDelete(row)}>
                     <DeleteIcon />
                   </IconButton>
                 </StyledTableCell>

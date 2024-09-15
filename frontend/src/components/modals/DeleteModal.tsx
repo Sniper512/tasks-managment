@@ -11,8 +11,9 @@ import {
 interface DeleteModalProps {
   open: boolean;
   onClose: () => void;
-  onDelete: () => void;
+  onDelete: (task_id:string) => void;
   taskName: string;
+  taskId:string;
 }
 
 const DeleteModal: React.FC<DeleteModalProps> = ({
@@ -20,6 +21,7 @@ const DeleteModal: React.FC<DeleteModalProps> = ({
   onClose,
   onDelete,
   taskName,
+  taskId,
 }) => {
   return (
     <Dialog open={open} onClose={onClose}>
@@ -33,7 +35,7 @@ const DeleteModal: React.FC<DeleteModalProps> = ({
       </DialogTitle>
       <DialogContent
         sx={{
-          fontFamily: "Roboto, sans-serif", 
+          fontFamily: "Roboto, sans-serif",
           fontSize: "16px",
         }}
       >
@@ -45,16 +47,16 @@ const DeleteModal: React.FC<DeleteModalProps> = ({
         <Button
           onClick={onClose}
           sx={{
-            fontFamily: "Roboto, sans-serif", 
+            fontFamily: "Roboto, sans-serif",
           }}
         >
           Cancel
         </Button>
         <Button
-          onClick={onDelete}
+          onClick={()=>onDelete(taskId)}
           color="error"
           sx={{
-            fontFamily: "Roboto, sans-serif", 
+            fontFamily: "Roboto, sans-serif",
           }}
         >
           Delete
