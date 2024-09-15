@@ -67,6 +67,7 @@ const PriorityStyles = {
   "Not Urgent": {},
 };
 
+
 function CustomizedTables() {
   const [openAddModal, setOpenAddModal] = useState(false);
   const [openEditModal, setOpenEditModal] = useState(false);
@@ -82,12 +83,14 @@ function CustomizedTables() {
 
       // Sorting tasks based on status
       const sortedData = data.sort((a: Task, b: Task) => {
-        const statusOrder = {
+        const statusOrder: { [key: string]: number } = {
           InProgress: 1,
           ToDo: 2,
           Done: 3,
         };
-        return statusOrder[a.status] - statusOrder[b.status];
+
+        return (statusOrder[a.status as keyof typeof statusOrder] || 0) -
+          (statusOrder[b.status as keyof typeof statusOrder] || 0);
       });
 
       setRows(sortedData);
@@ -95,6 +98,7 @@ function CustomizedTables() {
 
     fetchData();
   }, [rows]);
+
 
 
   const handleClickOpenAdd = () => {
@@ -227,7 +231,6 @@ function CustomizedTables() {
                 style={{
                   textDecoration: row.status === "Done" ? "line-through" : "none",
                   cursor: "pointer",
-                  backgroundColor: row.status === "Done" ? "darkgrey" : "white",
 
                 }}
               >
@@ -251,8 +254,9 @@ function CustomizedTables() {
                   sx={
                     PriorityStyles[row.priority as keyof typeof PriorityStyles]
                   }
-                  style={{ paddingLeft: 16, whiteSpace: "nowrap",
-                   }}
+                  style={{
+                    paddingLeft: 16, whiteSpace: "nowrap",
+                  }}
                 >
                   {row.priority}
                 </StyledTableCell>
