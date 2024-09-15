@@ -7,7 +7,9 @@ export default async function getAllTasksFromDB() {
 		await connectTODB(); // If this returns a promise, await it
 
 		// Fetch tasks
+		console.log("Fetching tasks from DB");
 		const tasks = await TaskModel.find({});
+		console.log("Fetched tasks from DB",tasks);
 
 		// Return an empty array if no tasks are found
 		return tasks || [];

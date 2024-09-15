@@ -17,14 +17,14 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { format } from "date-fns";
 
-
 interface Task {
-  TaskId: string;
-  Title: string;
-  Description: string;
-  Priority: string;
-  Status: string;
-  Deadline: string; // Store the date as a string in YYYY-MM-DD format
+  _id: string;
+  task_id: string;
+  title: string;
+  description: string;
+  priority: string;
+  status: string;
+  deadline: string;
 }
 
 interface AddModalProps {
@@ -35,12 +35,13 @@ interface AddModalProps {
 
 const AddModal: React.FC<AddModalProps> = ({ open, onClose, onAdd }) => {
   const [task, setTask] = useState<Task>({
-    TaskId: "",
-    Title: "",
-    Description: "",
-    Priority: "",
-    Status: "",
-    Deadline: "",
+    _id: "",
+    task_id: "",
+    title: "",
+    description: "",
+    priority: "",
+    status: "",
+    deadline: "",
   });
 
   const [errors, setErrors] = useState<Partial<Record<keyof Task, string>>>({});
@@ -54,29 +55,29 @@ const AddModal: React.FC<AddModalProps> = ({ open, onClose, onAdd }) => {
   };
 
   const handleSelectChange = (event: SelectChangeEvent<string>) => {
-    setTask((prev) => ({ ...prev, Status: event.target.value }));
+    setTask((prev) => ({ ...prev, status: event.target.value }));
   };
 
   const handlePriorityChange = (event: SelectChangeEvent<string>) => {
-    setTask((prev) => ({ ...prev, Priority: event.target.value }));
+    setTask((prev) => ({ ...prev, priority: event.target.value }));
   };
 
   const handleDeadlineChange = (date: Date | null) => {
     setDeadline(date);
     setTask((prev) => ({
       ...prev,
-      Deadline: date ? format(date, "yyyy-MM-dd") : "",
+      deadline: date ? format(date, "yyyy-MM-dd") : "",
     }));
   };
 
   const validate = () => {
     const newErrors: Partial<Record<keyof Task, string>> = {};
-    if (!task.TaskId) newErrors.TaskId = "Task ID is required";
-    if (!task.Title) newErrors.Title = "Title is required";
-    if (!task.Description) newErrors.Description = "Description is required";
-    if (!task.Priority) newErrors.Priority = "Priority is required";
-    if (!task.Status) newErrors.Status = "Status is required";
-    if (!task.Deadline) newErrors.Deadline = "Deadline is required";
+    if (!task.task_id) newErrors.task_id = "Task ID is required";
+    if (!task.title) newErrors.title = "Title is required";
+    if (!task.description) newErrors.description = "Description is required";
+    if (!task.priority) newErrors.priority = "Priority is required";
+    if (!task.status) newErrors.status = "Status is required";
+    if (!task.deadline) newErrors.deadline = "Deadline is required";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -85,12 +86,13 @@ const AddModal: React.FC<AddModalProps> = ({ open, onClose, onAdd }) => {
     if (validate()) {
       onAdd(task);
       setTask({
-        TaskId: "",
-        Title: "",
-        Description: "",
-        Priority: "",
-        Status: "",
-        Deadline: "",
+        _id: "",
+        task_id: "",
+        title: "",
+        description: "",
+        priority: "",
+        status: "",
+        deadline: "",
       });
       setErrors({});
       setDeadline(null);
@@ -105,58 +107,58 @@ const AddModal: React.FC<AddModalProps> = ({ open, onClose, onAdd }) => {
         <TextField
           autoFocus
           margin="dense"
-          name="TaskId"
+          name="task_id"
           label="Task ID"
           type="text"
           fullWidth
           variant="standard"
-          value={task.TaskId}
+          value={task.task_id}
           onChange={handleChange}
-          error={!!errors.TaskId}
-          helperText={errors.TaskId}
+          error={!!errors.task_id}
+          helperText={errors.task_id}
         />
         <TextField
           margin="dense"
-          name="Title"
+          name="title"
           label="Title"
           type="text"
           fullWidth
           variant="standard"
-          value={task.Title}
+          value={task.title}
           onChange={handleChange}
-          error={!!errors.Title}
-          helperText={errors.Title}
+          error={!!errors.title}
+          helperText={errors.title}
         />
         <TextField
           margin="dense"
-          name="Description"
+          name="description"
           label="Description"
           type="text"
           fullWidth
           variant="standard"
-          value={task.Description}
+          value={task.description}
           onChange={handleChange}
-          error={!!errors.Description}
-          helperText={errors.Description}
+          error={!!errors.description}
+          helperText={errors.description}
         />
         <FormControl
           fullWidth
           margin="dense"
           variant="standard"
-          error={!!errors.Priority}
+          error={!!errors.priority}
         >
           <InputLabel>Priority</InputLabel>
           <Select
-            name="Priority"
-            value={task.Priority}
+            name="priority"
+            value={task.priority}
             onChange={handlePriorityChange}
             label="Priority"
           >
             <MenuItem value="Urgent">Urgent</MenuItem>
             <MenuItem value="Not Urgent">Not Urgent</MenuItem>
           </Select>
-          {errors.Priority && (
-            <FormHelperText>{errors.Priority}</FormHelperText>
+          {errors.priority && (
+            <FormHelperText>{errors.priority}</FormHelperText>
           )}
         </FormControl>
 
@@ -164,12 +166,12 @@ const AddModal: React.FC<AddModalProps> = ({ open, onClose, onAdd }) => {
           fullWidth
           margin="dense"
           variant="standard"
-          error={!!errors.Status}
+          error={!!errors.status}
         >
           <InputLabel>Status</InputLabel>
           <Select
-            name="Status"
-            value={task.Status}
+            name="status"
+            value={task.status}
             onChange={handleSelectChange}
             label="Status"
           >
@@ -177,14 +179,14 @@ const AddModal: React.FC<AddModalProps> = ({ open, onClose, onAdd }) => {
             <MenuItem value="InProgress">In Progress</MenuItem>
             <MenuItem value="Done">Done</MenuItem>
           </Select>
-          {errors.Status && <FormHelperText>{errors.Status}</FormHelperText>}
+          {errors.status && <FormHelperText>{errors.status}</FormHelperText>}
         </FormControl>
 
         <FormControl
           fullWidth
           margin="dense"
           variant="standard"
-          error={!!errors.Deadline}
+          error={!!errors.deadline}
         >
           <InputLabel>Deadline</InputLabel>
           <div className="date-picker-wrapper">
@@ -196,8 +198,8 @@ const AddModal: React.FC<AddModalProps> = ({ open, onClose, onAdd }) => {
               className="react-datepicker"
             />
           </div>
-          {errors.Deadline && (
-            <FormHelperText>{errors.Deadline}</FormHelperText>
+          {errors.deadline && (
+            <FormHelperText>{errors.deadline}</FormHelperText>
           )}
         </FormControl>
       </DialogContent>

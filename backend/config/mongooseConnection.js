@@ -5,7 +5,8 @@ const connectTODB = async () => {
 
 	try {
 		// Hardcoding the connection string
-		await mongoose.connect(process.env.MONGODB_URI);
+		await mongoose.connect("mongodb://localhost:27017/task-management");
+		
 		console.log("Connected to DB");
 	} catch (error) {
 		console.error("Error connecting to DB:", error);

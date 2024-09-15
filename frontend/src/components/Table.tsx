@@ -1,13 +1,7 @@
-import { useState } from "react";
-import {Button } from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
-import EditIcon from "@mui/icons-material/Edit";
-import DeleteIcon from "@mui/icons-material/Delete";
-import IconButton from "@mui/material/IconButton";
-import AddModal from "./AddModal";
-import EditModal from "./EditModaal";
-import DeleteModal from "./DeleteModal";
+import { useState, useEffect } from "react";
 import {
+  Button,
+  IconButton,
   Table,
   TableBody,
   TableCell,
@@ -16,33 +10,37 @@ import {
   TableRow,
   Paper,
 } from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 import { styled } from "@mui/material/styles";
 import { tableCellClasses } from "@mui/material/TableCell";
-
+import AddModal from "./AddModal";
+import EditModal from "./EditModaal"; // Fixed import
+import DeleteModal from "./DeleteModal";
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
     backgroundColor: "#1976d2",
     color: theme.palette.common.white,
     fontWeight: "bold",
-    padding: theme.spacing(2,1),
+    padding: theme.spacing(2, 1),
     whiteSpace: "nowrap",
     overflow: "hidden",
     textOverflow: "ellipsis",
-    fontSize: "18px", 
-    fontFamily: "Roboto, sans-serif", 
+    fontSize: "18px",
+    fontFamily: "Roboto, sans-serif",
   },
   [`&.${tableCellClasses.body}`]: {
-    fontSize: "18px", 
+    fontSize: "18px",
     padding: theme.spacing(1),
     whiteSpace: "normal",
     wordWrap: "break-word",
     overflow: "hidden",
     textOverflow: "ellipsis",
-    fontFamily: "Roboto, sans-serif", // Consistent font family
+    fontFamily: "Roboto, sans-serif",
   },
 }));
-
 
 const StyledTableRow = styled(TableRow)(({ theme }) => ({
   "&:nth-of-type(odd)": {
@@ -74,7 +72,7 @@ const statusStyles = {
 const PriorityStyles = {
   Urgent: {
     backgroundColor: "red",
-    color: "white", // Ensure the text is visible against the background
+    color: "white",
     fontWeight: "bold",
   },
   "Not Urgent": {
@@ -86,24 +84,14 @@ const PriorityStyles = {
 };
 
 interface Task {
-  TaskId: string;
-  Title: string;
-  Description: string;
-  Priority: string;
-  Status: string;
-  Deadline: string;
+  _id: string;
+  task_id: string;
+  title: string;
+  description: string;
+  priority: string;
+  status: string;
+  deadline: string;
 }
-
-const initialRows: Task[] = [
-  {
-    TaskId: "1",
-    Title: "HSNI",
-    Description: "something will come",
-    Priority: "Urgent",
-    Status: "ToDo",
-    Deadline: "9/13/2024", // please provide MM/DD/YYYY if hardcoded
-  },
-];
 
 function CustomizedTables() {
   const [openAddModal, setOpenAddModal] = useState(false);
@@ -111,7 +99,23 @@ function CustomizedTables() {
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
   const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
-  const [rows, setRows] = useState<Task[]>(initialRows);
+  const [rows, setRows] = useState<Task[]>([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch("http://localhost:3000/api/task");
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        const data = await response.json();
+        setRows(data);
+      } catch (error) {
+        console.error("Fetch error:", error);
+      }
+    };
+    fetchData();
+  }, [rows]);
 
   const handleClickOpenAdd = () => {
     setOpenAddModal(true);
@@ -121,8 +125,23 @@ function CustomizedTables() {
     setOpenAddModal(false);
   };
 
-  const handleAdd = (newTask: Task) => {
-    setRows((prev) => [...prev, newTask]);
+  const handleAdd = async (newTask: Task) => {
+    try {
+      const response = await fetch("http://localhost:3000/api/task", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newTask),
+      });
+      if (response.ok) {
+        setRows((prev) => [...prev, newTask]);
+      } else {
+        console.error("Failed to add task");
+      }
+    } catch (error) {
+      console.error("Fetch error:", error);
+    }
   };
 
   const handleClickOpenEdit = (task: Task) => {
@@ -135,13 +154,34 @@ function CustomizedTables() {
     setTaskToEdit(null);
   };
 
-  const handleSaveEdit = (updatedTask: Task) => {
-    setRows((prev) =>
-      prev.map((task) =>
-        task.TaskId === updatedTask.TaskId ? updatedTask : task
-      )
-    );
-    handleCloseEdit();
+  const handleSaveEdit =async (updatedTask: Task) => {
+    try{
+      const response = await fetch(`http://localhost:3000/api/task/${updatedTask._id}`,{
+        method:"PUT",
+        headers:{
+          "Content-Type": "application/json",
+        },
+        body:JSON.stringify(updatedTask)
+      })
+      if(response.ok){
+        setRows((prev) =>
+        prev.map((task) =>
+        task.task_id === updatedTask.task_id ? updatedTask : task
+        ))
+      }
+      else{
+        console.error("Unable to Update Data ");
+      }
+    }
+    catch(error){
+      console.error("Fetch error ",error);
+    }
+
+     handleCloseEdit();
+  };
+  const formatDate = (isoDate:string) => {
+    const date = new Date(isoDate);
+    return date.toLocaleDateString();
   };
 
   const handleClickOpenDelete = (task: Task) => {
@@ -154,12 +194,19 @@ function CustomizedTables() {
     setTaskToDelete(null);
   };
 
-  const handleDelete = () => {
-    if (taskToDelete) {
-      setRows((prev) =>
-        prev.filter((task) => task.TaskId !== taskToDelete.TaskId)
-      );
-      handleCloseDelete();
+  const handleDelete = async (id: string) => {
+    try {
+      const response = await fetch(`http://localhost:3000/api/task/${id}`, {
+        method: "DELETE",
+      });
+      if (response.ok) {
+        setRows((prev) => prev.filter((task) => task.task_id !== id));
+        handleCloseDelete();
+      } else {
+        console.error("Failed to delete task");
+      }
+    } catch (error) {
+      console.error("Fetch error:", error);
     }
   };
 
@@ -196,7 +243,8 @@ function CustomizedTables() {
         open={openDeleteModal}
         onClose={handleCloseDelete}
         onDelete={handleDelete}
-        taskName={taskToDelete?.Title || ""}
+        taskName={taskToDelete?.title || ""}
+        taskId={taskToDelete?._id || ""}
       />
       <TableContainer
         component={Paper}
@@ -221,35 +269,39 @@ function CustomizedTables() {
           </TableHead>
           <TableBody>
             {rows.map((row) => (
-              <StyledTableRow key={row.TaskId}>
+              <StyledTableRow key={row.task_id}>
                 <StyledTableCell
                   align="left"
                   style={{ paddingLeft: 16 }}
                   component="th"
                   scope="row"
                 >
-                  {row.TaskId}
+                  {row.task_id}
                 </StyledTableCell>
-                <StyledTableCell align="left">{row.Title}</StyledTableCell>
+                <StyledTableCell align="left">{row.title}</StyledTableCell>
                 <StyledTableCell
                   align="left"
                   sx={{ maxWidth: 300, minWidth: 250 }}
                 >
-                  {row.Description}
+                  {row.description}
                 </StyledTableCell>
                 <StyledTableCell
                   align="left"
-                  sx={PriorityStyles[row.Priority as keyof typeof PriorityStyles]}
+                  sx={
+                    PriorityStyles[row.priority as keyof typeof PriorityStyles]
+                  }
                 >
-                  {row.Priority}
+                  {row.priority}
                 </StyledTableCell>
                 <StyledTableCell
                   align="left"
-                  sx={statusStyles[row.Status as keyof typeof statusStyles]}
+                  sx={statusStyles[row.status as keyof typeof statusStyles]}
                 >
-                  {row.Status}
+                  {row.status}
                 </StyledTableCell>
-                <StyledTableCell align="left">{row.Deadline}</StyledTableCell>
+                <StyledTableCell align="left">
+                  {formatDate(row.deadline)}
+                </StyledTableCell>
                 <StyledTableCell align="left">
                   <IconButton
                     color="primary"
