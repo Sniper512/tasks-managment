@@ -7,7 +7,10 @@ const taskSchema = z.object({
   task_id: z.string().min(1, "TaskId cannot be empty"),
   title: z.string().min(1, "Title cannot be empty"),
   description: z.string().min(1, "Description cannot be empty"),
-  priority: z.string().min(1, "Priority cannot be empty"),
+  priority: z.string().min(1, "Priority cannot be empty").refine(
+      (value) => ["ToDo", "InProgress", "Done"].includes(value),
+      "Invalid status"
+    ),
   status: z
     .string()
     .min(1, "Status cannot be empty")
@@ -40,10 +43,8 @@ export default async function addTaskToDB({
     const _id = new mongoose.Types.ObjectId();
     taskData._id = _id;
 
-    // Converting deadline to a Date object if it's a string
     taskData.deadline = new Date(taskData.deadline);
 
-    // Saving the task to the DB
     const task = await TaskModel.create(taskData);
 
     return {

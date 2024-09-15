@@ -16,8 +16,13 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import { styled } from "@mui/material/styles";
 import { tableCellClasses } from "@mui/material/TableCell";
 import AddModal from "./AddModal";
-import EditModal from "./EditModaal"; // Fixed import
+import EditModal from "./EditModaal";
 import DeleteModal from "./DeleteModal";
+import { Task } from "../types/taskTypes";
+import deleteTaskFromDBService from "../services/deleteTaskFromDBService";
+import editTaskToDBService from "../services/editTaskToDBService";
+import addTaskToDBService from "../services/addTaskToDBService";
+import getAllTasksFromDBService from "../services/getAllTasksFromDBService";
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
@@ -80,18 +85,9 @@ const PriorityStyles = {
     color: "white",
     fontWeight: "bold",
   },
-  // Add other priorities as needed
 };
 
-interface Task {
-  _id: string;
-  task_id: string;
-  title: string;
-  description: string;
-  priority: string;
-  status: string;
-  deadline: string;
-}
+
 
 function CustomizedTables() {
   const [openAddModal, setOpenAddModal] = useState(false);
@@ -103,16 +99,8 @@ function CustomizedTables() {
 
   useEffect(() => {
     const fetchData = async () => {
-      try {
-        const response = await fetch("http://localhost:8800/api/task");
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-        const data = await response.json();
-        setRows(data);
-      } catch (error) {
-        console.error("Fetch error:", error);
-      }
+      const response = await getAllTasksFromDBService();
+      setRows(response.data);
     };
     fetchData();
   }, [rows]);
@@ -125,23 +113,17 @@ function CustomizedTables() {
     setOpenAddModal(false);
   };
 
-  const handleAdd = async (newTask: Task) => {
-    try {
-      const response = await fetch("http://localhost:8800/api/task", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(newTask),
-      });
-      if (response.ok) {
-        setRows((prev) => [...prev, newTask]);
-      } else {
-        console.error("Failed to add task");
-      }
-    } catch (error) {
-      console.error("Fetch error:", error);
+  const handleAddTask = async (newTask: Task) => {
+
+    const response = await addTaskToDBService(newTask);
+    if (response.type === "success") {
+      setRows((prev) => [...prev, newTask]);
+
+      //TODO: Show success alert
+    } else if (response.type === "error") {
+      //TODO: Show error alert
     }
+
   };
 
   const handleClickOpenEdit = (task: Task) => {
@@ -154,32 +136,28 @@ function CustomizedTables() {
     setTaskToEdit(null);
   };
 
-  const handleSaveEdit =async (updatedTask: Task) => {
-    try{
-      const response = await fetch(`http://localhost:8800/api/task/${updatedTask._id}`,{
-        method:"PUT",
-        headers:{
-          "Content-Type": "application/json",
-        },
-        body:JSON.stringify(updatedTask)
-      })
-      if(response.ok){
-        setRows((prev) =>
-        prev.map((task) =>
-        task.task_id === updatedTask.task_id ? updatedTask : task
-        ))
-      }
-      else{
-        console.error("Unable to Update Data ");
-      }
-    }
-    catch(error){
-      console.error("Fetch error ",error);
-    }
+  const handleEditTask = async (updatedTask: Task) => {
 
-     handleCloseEdit();
-  };
-  const formatDate = (isoDate:string) => {
+    const response = await editTaskToDBService(updatedTask);
+    if (response.type === "success") {
+      setRows((prev) =>
+        prev.map((task) =>
+          task.task_id === updatedTask.task_id ? updatedTask : task
+        ))
+      //TODO: Show success alert
+
+    }
+    else if (response.type === "error") {
+      {
+
+        //TODO: Show error alert
+      }
+      handleCloseEdit();
+    };
+  }
+
+
+  const formatDate = (isoDate: string) => {
     const date = new Date(isoDate);
     return date.toLocaleDateString();
   };
@@ -194,20 +172,18 @@ function CustomizedTables() {
     setTaskToDelete(null);
   };
 
-  const handleDelete = async (id: string) => {
-    try {
-      const response = await fetch(`http://localhost:8800/api/task/${id}`, {
-        method: "DELETE",
-      });
-      if (response.ok) {
-        setRows((prev) => prev.filter((task) => task.task_id !== id));
-        handleCloseDelete();
-      } else {
-        console.error("Failed to delete task");
-      }
-    } catch (error) {
-      console.error("Fetch error:", error);
+  const handleTaskDeleteFunc = async (id: string) => {
+
+    const response = await deleteTaskFromDBService({ id });
+    if (response.type === "success") {
+      setRows((prev) => prev.filter((task) => task.task_id !== id));
+      handleCloseDelete();
+      //TODO: Show success alert
+
+    } else if (response.type === "error") {
+      //TODO: Show error alert
     }
+
   };
 
   return (
@@ -231,18 +207,18 @@ function CustomizedTables() {
       <AddModal
         open={openAddModal}
         onClose={handleCloseAdd}
-        onAdd={handleAdd}
+        onAdd={handleAddTask}
       />
       <EditModal
         open={openEditModal}
         onClose={handleCloseEdit}
-        onSave={handleSaveEdit}
+        onSave={handleEditTask}
         taskToEdit={taskToEdit || ({} as Task)}
       />
       <DeleteModal
         open={openDeleteModal}
         onClose={handleCloseDelete}
-        onDelete={handleDelete}
+        onDelete={handleTaskDeleteFunc}
         taskName={taskToDelete?.title || ""}
         taskId={taskToDelete?._id || ""}
       />
@@ -290,6 +266,7 @@ function CustomizedTables() {
                   sx={
                     PriorityStyles[row.priority as keyof typeof PriorityStyles]
                   }
+                  className={row.priority === "urgent" ? "bg-danger" : "bg-success"}
                 >
                   {row.priority}
                 </StyledTableCell>
