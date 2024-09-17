@@ -14,4 +14,4 @@ This is a Simple Task Management System.
 3. There are two directories: frontend and backend
 4. Go to the backend directory in terminal and run `npm install` and then `node app.js`
 5. Open another terminal.
-6. Go to the frontend directory in this terminal and run `npm install` and then `npm start`
+6. Go to the frontend directory in this terminal and run `npm install` and then `npm run dev`
