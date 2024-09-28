@@ -12,7 +12,8 @@ const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.join(__dirname, ".env.local") });
 const app = express();
 
-//Am allowing requests from only one orgin you call allow it from All origins by using * in origin
+//allowing requests from only one orgin you call allow it from All origins by using * in origin
+
 app.use(
 	cors({
 		origin: "http://localhost:5173",
